@@ -20,6 +20,13 @@ import (
 )
 
 func InstallUsers() error {
+	// remove the existing user avatars from local disk
+	err := os.RemoveAll("storage/users")
+	if err != nil {
+		return err
+	}
+
+	// create db connection
 	conn, err := http.NewConnection(http.ConnectionConfig{
 		Endpoints: []string{"http://localhost:8529"},
 	})
