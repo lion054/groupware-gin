@@ -1,35 +1,19 @@
 package seeds
 
 import (
-	"context"
 	"math"
 	"time"
 
+	"groupware-gin/helpers"
 	"groupware-gin/models"
 
 	driver "github.com/arangodb/go-driver"
-	"github.com/arangodb/go-driver/http"
 	"syreclabs.com/go/faker"
 )
 
 func InstallCompanies() error {
-	conn, err := http.NewConnection(http.ConnectionConfig{
-		Endpoints: []string{"http://localhost:8529"},
-	})
-	if err != nil {
-		return err
-	}
-	c, err := driver.NewClient(driver.ClientConfig{
-		Connection:     conn,
-		Authentication: driver.BasicAuthentication("root", ""),
-	})
-	if err != nil {
-		return err
-	}
-	ctx := context.Background()
-
 	// open database
-	db, err := c.Database(ctx, "_system")
+	db, ctx, err := helpers.OpenDatabase()
 	if err != nil {
 		return err
 	}
