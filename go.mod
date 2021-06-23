@@ -9,6 +9,7 @@ require (
 	github.com/go-playground/validator/v10 v10.6.1 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/uuid v1.2.0
+	github.com/gorilla/handlers v1.5.1 // indirect
 	github.com/gorilla/mux v1.8.0
 	github.com/joho/godotenv v1.3.0
 	github.com/joncalhoun/qson v0.0.0-20200422171543-84433dcd3da0

@@ -4,9 +4,11 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 
 	driver "github.com/arangodb/go-driver"
 	"github.com/gin-gonic/gin"
+	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 
 	"groupware-gin/helpers"
@@ -39,6 +41,14 @@ func Ping(w http.ResponseWriter, r *http.Request) {
 	responses.JSON(w, http.StatusOK, gin.H{
 		"message": "ping",
 	})
+}
+
+func (s *Server) LaunchWithCORS() {
+	headersOk := handlers.AllowedHeaders([]string{"X-Requested-With"})
+	originsOk := handlers.AllowedOrigins([]string{os.Getenv("ORIGIN_ALLOWED")})
+	methodsOk := handlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE", "PATCH"})
+	handler := handlers.CORS(originsOk, headersOk, methodsOk)(s.Router)
+	http.ListenAndServe(":"+os.Getenv("PORT"), handler)
 }
 
 func (s *Server) setUpRoutes() {
