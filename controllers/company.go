@@ -12,11 +12,9 @@ import (
 	driver "github.com/arangodb/go-driver"
 	"github.com/asaskevich/govalidator"
 	"github.com/gin-gonic/gin"
-	"github.com/gorilla/mux"
 	"github.com/joncalhoun/qson"
 
 	"groupware-gin/models"
-	"groupware-gin/responses"
 )
 
 /*
@@ -31,25 +29,25 @@ type findParams struct {
 	Limit  *int   `json:"limit" valid:"optional,range(5|100)"`
 }
 
-func (s *Server) FindCompanies(w http.ResponseWriter, r *http.Request) {
+func (s *Server) FindCompanies(c *gin.Context) {
 	ctx := context.Background()
 
 	// validae URL query
 	var params findParams
-	if r.URL.RawQuery != "" { // hack: qson fails on empty string
-		err := qson.Unmarshal(&params, r.URL.RawQuery)
+	if c.Request.URL.RawQuery != "" { // hack: qson fails on empty string
+		err := qson.Unmarshal(&params, c.Request.URL.RawQuery)
 		if err != nil {
-			responses.ERROR(w, http.StatusFailedDependency, err)
+			c.JSON(http.StatusFailedDependency, err)
 			return
 		}
 		params.Search = strings.TrimSpace(params.Search)
 		result, err := govalidator.ValidateStruct(params)
 		if err != nil {
-			responses.ERROR(w, http.StatusFailedDependency, err)
+			c.JSON(http.StatusFailedDependency, err)
 			return
 		}
 		if !result {
-			responses.ERROR(w, http.StatusFailedDependency, errors.New("validation failed"))
+			c.JSON(http.StatusFailedDependency, errors.New("validation failed"))
 			return
 		}
 	}
@@ -72,7 +70,7 @@ func (s *Server) FindCompanies(w http.ResponseWriter, r *http.Request) {
 	query = append(query, "RETURN x")
 	cursor, err := s.DB.Query(ctx, strings.Join(query, " "), bindVars)
 	if err != nil {
-		responses.ERROR(w, http.StatusFailedDependency, err)
+		c.JSON(http.StatusFailedDependency, err)
 		return
 	}
 	defer cursor.Close()
@@ -85,12 +83,12 @@ func (s *Server) FindCompanies(w http.ResponseWriter, r *http.Request) {
 		if driver.IsNoMoreDocuments(err) {
 			break
 		} else if err != nil {
-			responses.ERROR(w, http.StatusFailedDependency, err)
+			c.JSON(http.StatusFailedDependency, err)
 			return
 		}
 		companies = append(companies, doc)
 	}
-	responses.JSON(w, http.StatusOK, companies)
+	c.JSON(http.StatusOK, companies)
 }
 
 /*
@@ -99,35 +97,34 @@ func (s *Server) FindCompanies(w http.ResponseWriter, r *http.Request) {
  * Show a company
  */
 
-func (s *Server) ShowCompany(w http.ResponseWriter, r *http.Request) {
+func (s *Server) ShowCompany(c *gin.Context) {
 	ctx := context.Background()
 	companies, err := s.DB.Collection(ctx, "companies")
 	if err != nil {
-		responses.ERROR(w, http.StatusFailedDependency, err)
+		c.JSON(http.StatusFailedDependency, err)
 		return
 	}
 
 	// validate params
-	vars := mux.Vars(r)
-	found, err := companies.DocumentExists(ctx, vars["key"])
+	key := c.Param("key")
+	found, err := companies.DocumentExists(ctx, key)
 	if err != nil {
-		responses.ERROR(w, http.StatusFailedDependency, err)
+		c.JSON(http.StatusFailedDependency, err)
 		return
 	}
 	if !found {
-		err := errors.New("this company does not exist")
-		responses.ERROR(w, http.StatusNotFound, err)
+		c.JSON(http.StatusNotFound, errors.New("this company does not exist"))
 		return
 	}
 
 	// make a result
 	var doc models.Company
-	_, err = companies.ReadDocument(ctx, vars["key"], &doc)
+	_, err = companies.ReadDocument(ctx, key, &doc)
 	if err != nil {
-		responses.ERROR(w, http.StatusFailedDependency, err)
+		c.JSON(http.StatusFailedDependency, err)
 		return
 	}
-	responses.JSON(w, http.StatusOK, doc)
+	c.JSON(http.StatusOK, doc)
 }
 
 /*
@@ -141,33 +138,33 @@ type storeParams struct {
 	Since string `json:"since" valid:"required,rfc3339"`
 }
 
-func (s *Server) StoreCompany(w http.ResponseWriter, r *http.Request) {
+func (s *Server) StoreCompany(c *gin.Context) {
 	ctx := context.Background()
 
 	// validate payload
-	dec := json.NewDecoder(r.Body)
+	dec := json.NewDecoder(c.Request.Body)
 	dec.DisallowUnknownFields()
 	var params storeParams
 	err := dec.Decode(&params)
 	if err != nil {
-		responses.ERROR(w, http.StatusFailedDependency, err)
+		c.JSON(http.StatusFailedDependency, err)
 		return
 	}
 	params.Name = govalidator.Trim(params.Name, "")
 	res, err := govalidator.ValidateStruct(params)
 	if err != nil {
-		responses.ERROR(w, http.StatusFailedDependency, err)
+		c.JSON(http.StatusFailedDependency, err)
 		return
 	}
 	if !res {
-		responses.ERROR(w, http.StatusBadRequest, errors.New("validation failed"))
+		c.JSON(http.StatusBadRequest, errors.New("validation failed"))
 		return
 	}
 
 	// create a document
 	companies, err := s.DB.Collection(ctx, "companies")
 	if err != nil {
-		responses.ERROR(w, http.StatusFailedDependency, err)
+		c.JSON(http.StatusFailedDependency, err)
 		return
 	}
 	var doc models.Company
@@ -175,10 +172,10 @@ func (s *Server) StoreCompany(w http.ResponseWriter, r *http.Request) {
 	anotherCtx := driver.WithKeepNull(otherCtx, false)
 	_, err = companies.CreateDocument(anotherCtx, params)
 	if err != nil {
-		responses.ERROR(w, http.StatusFailedDependency, err)
+		c.JSON(http.StatusFailedDependency, err)
 		return
 	}
-	responses.JSON(w, http.StatusOK, doc)
+	c.JSON(http.StatusOK, doc)
 }
 
 /*
@@ -187,21 +184,21 @@ func (s *Server) StoreCompany(w http.ResponseWriter, r *http.Request) {
  * Update a company
  */
 
-func (s *Server) validateParams(w http.ResponseWriter, r *http.Request) (string, error) {
+func (s *Server) validateParams(c *gin.Context) (string, error) {
 	ctx := context.Background()
-	vars := mux.Vars(r)
+	key := c.Param("key")
 	companies, err := s.DB.Collection(ctx, "companies")
 	if err != nil {
 		return "", err
 	}
-	found, err := companies.DocumentExists(ctx, vars["key"])
+	found, err := companies.DocumentExists(ctx, key)
 	if err != nil {
-		return vars["key"], err
+		return key, err
 	}
 	if !found {
-		return vars["key"], errors.New("does not exist")
+		return key, errors.New("does not exist")
 	}
-	return vars["key"], nil
+	return key, nil
 }
 
 type updateParams struct {
@@ -209,45 +206,45 @@ type updateParams struct {
 	Since string `json:"since" validate:"optional,rfc3339"`
 }
 
-func (s *Server) UpdateCompany(w http.ResponseWriter, r *http.Request) {
+func (s *Server) UpdateCompany(c *gin.Context) {
 	ctx := context.Background()
 
 	// validate params
-	key, err := s.validateParams(w, r)
+	key, err := s.validateParams(c)
 	if err != nil {
-		responses.ERROR(w, http.StatusFailedDependency, err)
+		c.JSON(http.StatusFailedDependency, err)
 		return
 	}
 
 	// validate payload
-	dec := json.NewDecoder(r.Body)
+	dec := json.NewDecoder(c.Request.Body)
 	dec.DisallowUnknownFields()
 	var params updateParams
 	err = dec.Decode(&params)
 	if err != nil {
-		responses.ERROR(w, http.StatusFailedDependency, err)
+		c.JSON(http.StatusFailedDependency, err)
 		return
 	}
 	params.Name = govalidator.Trim(params.Name, "")
 	result, err := govalidator.ValidateStruct(params)
 	if err != nil {
-		responses.ERROR(w, http.StatusFailedDependency, err)
+		c.JSON(http.StatusFailedDependency, err)
 		return
 	}
 	if !result {
-		responses.ERROR(w, http.StatusBadRequest, errors.New("validation failed"))
+		c.JSON(http.StatusBadRequest, errors.New("validation failed"))
 		return
 	}
 
 	// update a document
 	companies, err := s.DB.Collection(ctx, "companies")
 	if err != nil {
-		responses.ERROR(w, http.StatusFailedDependency, err)
+		c.JSON(http.StatusFailedDependency, err)
 		return
 	}
 	_, err = companies.UpdateDocument(ctx, key, params)
 	if err != nil {
-		responses.ERROR(w, http.StatusFailedDependency, err)
+		c.JSON(http.StatusFailedDependency, err)
 		return
 	}
 
@@ -257,10 +254,10 @@ func (s *Server) UpdateCompany(w http.ResponseWriter, r *http.Request) {
 	var doc models.Company
 	_, err = companies.ReadDocument(ctx, key, &doc)
 	if err != nil {
-		responses.ERROR(w, http.StatusFailedDependency, err)
+		c.JSON(http.StatusFailedDependency, err)
 		return
 	}
-	responses.JSON(w, http.StatusOK, doc)
+	c.JSON(http.StatusOK, doc)
 }
 
 /*
@@ -273,15 +270,15 @@ type deleteParams struct {
 	Forever bool `json:"forever" valid:"optional,bool"`
 }
 
-func (s *Server) DeleteCompany(w http.ResponseWriter, r *http.Request) {
-	dec := json.NewDecoder(r.Body)
+func (s *Server) DeleteCompany(c *gin.Context) {
+	dec := json.NewDecoder(c.Request.Body)
 	dec.DisallowUnknownFields()
 	ctx := context.Background()
 
 	// validate params
-	key, err := s.validateParams(w, r)
+	key, err := s.validateParams(c)
 	if err != nil {
-		responses.ERROR(w, http.StatusFailedDependency, err)
+		c.JSON(http.StatusFailedDependency, err)
 		return
 	}
 
@@ -289,33 +286,33 @@ func (s *Server) DeleteCompany(w http.ResponseWriter, r *http.Request) {
 	params := deleteParams{}
 	err = dec.Decode(&params)
 	if err != nil && err != io.EOF {
-		responses.ERROR(w, http.StatusFailedDependency, err)
+		c.JSON(http.StatusFailedDependency, err)
 		return
 	}
 	res, err := govalidator.ValidateStruct(params)
 	if err != nil {
-		responses.ERROR(w, http.StatusFailedDependency, err)
+		c.JSON(http.StatusFailedDependency, err)
 		return
 	}
 	if !res {
-		responses.ERROR(w, http.StatusBadRequest, errors.New("validation failed"))
+		c.JSON(http.StatusBadRequest, errors.New("validation failed"))
 		return
 	}
 
 	// perform an action
 	companies, err := s.DB.Collection(ctx, "companies")
 	if err != nil {
-		responses.ERROR(w, http.StatusFailedDependency, err)
+		c.JSON(http.StatusFailedDependency, err)
 		return
 	}
 	if params.Forever {
 		// delete a document permanently
 		_, err = companies.RemoveDocument(ctx, key)
 		if err != nil {
-			responses.ERROR(w, http.StatusFailedDependency, err)
+			c.JSON(http.StatusFailedDependency, err)
 			return
 		}
-		responses.JSON(w, http.StatusNoContent, "")
+		c.JSON(http.StatusNoContent, "")
 	} else {
 		// delete a document temporarily
 		var doc models.Company
@@ -324,10 +321,10 @@ func (s *Server) DeleteCompany(w http.ResponseWriter, r *http.Request) {
 			"deleted_at": time.Now().UTC().Format(time.RFC3339),
 		})
 		if err != nil {
-			responses.ERROR(w, http.StatusFailedDependency, err)
+			c.JSON(http.StatusFailedDependency, err)
 			return
 		}
-		responses.JSON(w, http.StatusOK, doc)
+		c.JSON(http.StatusOK, doc)
 	}
 }
 
@@ -337,20 +334,20 @@ func (s *Server) DeleteCompany(w http.ResponseWriter, r *http.Request) {
  * Restorer a company that was deleted temporarily
  */
 
-func (s *Server) RestoreCompany(w http.ResponseWriter, r *http.Request) {
+func (s *Server) RestoreCompany(c *gin.Context) {
 	ctx := context.Background()
 
 	// validate params
-	key, err := s.validateParams(w, r)
+	key, err := s.validateParams(c)
 	if err != nil {
-		responses.ERROR(w, http.StatusFailedDependency, err)
+		c.JSON(http.StatusFailedDependency, err)
 		return
 	}
 
 	// update a document
 	companies, err := s.DB.Collection(ctx, "companies")
 	if err != nil {
-		responses.ERROR(w, http.StatusFailedDependency, err)
+		c.JSON(http.StatusFailedDependency, err)
 		return
 	}
 	otherCtx := driver.WithKeepNull(ctx, false)
@@ -360,8 +357,8 @@ func (s *Server) RestoreCompany(w http.ResponseWriter, r *http.Request) {
 		"deleted_at": nil,
 	})
 	if err != nil {
-		responses.ERROR(w, http.StatusFailedDependency, err)
+		c.JSON(http.StatusFailedDependency, err)
 		return
 	}
-	responses.JSON(w, http.StatusOK, doc)
+	c.JSON(http.StatusOK, doc)
 }

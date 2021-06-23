@@ -31,6 +31,5 @@ func main() {
 	}
 
 	server.Initialize()
-	// server.Run(":8080")
-	server.LaunchWithCORS()
+	server.Router.Run(":" + os.Getenv("PORT"))
 }
