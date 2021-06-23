@@ -65,9 +65,8 @@ func (s *Server) setUpRoutes() {
 	s.Router.GET("/companies", s.FindCompanies)
 	s.Router.GET("/companies/:key", s.ShowCompany)
 	s.Router.POST("/companies", s.StoreCompany)
-	s.Router.PUT("/companies/:key", s.UpdateCompany)
+	s.Router.PATCH("/companies/:key", s.UpdateCompany)
 	s.Router.DELETE("/companies/:key", s.DeleteCompany)
-	s.Router.PATCH("/companies/:key", s.RestoreCompany)
 
 	// users routes
 }

@@ -10,10 +10,12 @@ import (
 // remove it from all results of json encode (omitempty)
 
 type Company struct {
-	ID        driver.DocumentID `json:"_id"`
-	Key       string            `json:"_key"`
-	Rev       string            `json:"_rev"`
-	Name      string            `json:"name"`
-	Since     time.Time         `json:"since"`
-	DeletedAt *time.Time        `json:"deleted_at,omitempty"`
+	ID         driver.DocumentID `json:"_id,omitempty"`  // empty on create
+	Key        string            `json:"_key,omitempty"` // empty on create
+	Rev        string            `json:"_rev,omitempty"` // empty on create
+	Name       string            `json:"name"`
+	Since      time.Time         `json:"since"`
+	CreatedAt  time.Time         `json:"created_at"`
+	ModifiedAt time.Time         `json:"modified_at"`
+	DeletedAt  *time.Time        `json:"deleted_at,omitempty"`
 }

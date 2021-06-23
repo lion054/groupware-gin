@@ -23,7 +23,7 @@ func InstallCompanies() error {
 
 	// at the first, clean up old collection
 	found, err := db.CollectionExists(ctx, "companies")
-	if err == nil {
+	if err != nil {
 		return err
 	}
 	if found {
@@ -45,9 +45,12 @@ func InstallCompanies() error {
 
 	// create a few companies in this collection
 	for i := 0; i < 10; i++ {
+		now := time.Now().UTC()
 		doc := models.Company{
-			Name:  faker.Company().Name(),
-			Since: faker.Date().Backward(time.Duration(math.Pow10(9) * 3600 * 24 * 365 * 10)),
+			Name:       faker.Company().Name(),
+			Since:      faker.Date().Backward(time.Duration(math.Pow10(9) * 3600 * 24 * 365 * 10)).UTC(),
+			CreatedAt:  now,
+			ModifiedAt: now,
 		}
 		_, err := col.CreateDocument(ctx, doc)
 		if err != nil {
