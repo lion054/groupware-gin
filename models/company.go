@@ -3,31 +3,17 @@ package models
 import (
 	"time"
 
-	validation "github.com/go-ozzo/ozzo-validation/v4"
+	driver "github.com/arangodb/go-driver"
 )
 
-type Company struct {
-	Name  string    `json:"name"`
-	Since time.Time `json:"since"`
-}
+// if the deleted_at field is empty,
+// remove it from all results of json encode (omitempty)
 
-func (c *Company) Validate(action string) error {
-	if action == "store" {
-		err := validation.ValidateStruct(c,
-			// Name cannot be empty
-			validation.Field(&c.Name, validation.Required, validation.Length(5, 50)),
-			// Since cannot be empty
-			validation.Field(&c.Since, validation.Required, validation.Date("")),
-		)
-		return err
-	} else if action == "update" {
-		err := validation.ValidateStruct(c,
-			// Name cannot be empty
-			validation.Field(&c.Name, validation.Length(5, 50)),
-			// Since cannot be empty
-			validation.Field(&c.Since, validation.Date("")),
-		)
-		return err
-	}
-	return nil
+type Company struct {
+	ID        driver.DocumentID `json:"_id"`
+	Key       string            `json:"_key"`
+	Rev       string            `json:"_rev"`
+	Name      string            `json:"name"`
+	Since     time.Time         `json:"since"`
+	DeletedAt *time.Time        `json:"deleted_at,omitempty"`
 }

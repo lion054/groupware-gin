@@ -8,28 +8,33 @@ import (
 	"github.com/arangodb/go-driver/http"
 )
 
-func OpenDatabase() (driver.Database, context.Context, error) {
+func OpenDatabase() (driver.Database, error) {
 	// create db connection
+	host := os.Getenv("DB_HOST")
+	port := os.Getenv("DB_PORT")
 	conn, err := http.NewConnection(http.ConnectionConfig{
-		Endpoints: []string{"http://" + os.Getenv("DB_HOST") + ":" + os.Getenv("DB_PORT")},
+		Endpoints: []string{"http://" + host + ":" + port},
 	})
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
+	username := os.Getenv("DB_USERNAME")
+	password := os.Getenv("DB_PASSWORD")
 	c, err := driver.NewClient(driver.ClientConfig{
 		Connection:     conn,
-		Authentication: driver.BasicAuthentication(os.Getenv("DB_USERNAME"), os.Getenv("DB_PASSWORD")),
+		Authentication: driver.BasicAuthentication(username, password),
 	})
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
-	ctx := context.Background()
 
 	// open database
-	db, err := c.Database(ctx, os.Getenv("DB_DATABASE"))
+	ctx := context.Background()
+	dbName := os.Getenv("DB_DATABASE")
+	db, err := c.Database(ctx, dbName)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
-	return db, ctx, nil
+	return db, nil
 }

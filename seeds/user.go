@@ -1,6 +1,7 @@
 package seeds
 
 import (
+	"context"
 	"crypto/md5"
 	"encoding/hex"
 	"fmt"
@@ -14,11 +15,14 @@ import (
 	"groupware-gin/models"
 
 	driver "github.com/arangodb/go-driver"
+	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"syreclabs.com/go/faker"
 )
 
 func InstallUsers() error {
+	ctx := context.Background()
+
 	// remove the existing user avatars from local disk
 	err := os.RemoveAll("storage/users")
 	if err != nil {
@@ -26,7 +30,7 @@ func InstallUsers() error {
 	}
 
 	// open database
-	db, ctx, err := helpers.OpenDatabase()
+	db, err := helpers.OpenDatabase()
 	if err != nil {
 		return err
 	}
@@ -132,7 +136,7 @@ func InstallUsers() error {
 			fileName := uuid.New().String() + ".jpg"
 			filePath := "users/" + userMeta.Key + "/" + fileName
 			DownloadFile("https://thispersondoesnotexist.com/image", "storage/"+filePath)
-			patch := map[string]interface{}{
+			patch := gin.H{
 				"Avatar": filePath,
 			}
 			userMeta, err = usersCollection.UpdateDocument(ctx, userMeta.Key, patch)

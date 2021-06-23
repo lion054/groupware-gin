@@ -1,6 +1,7 @@
 package seeds
 
 import (
+	"context"
 	"math"
 	"time"
 
@@ -12,8 +13,10 @@ import (
 )
 
 func InstallCompanies() error {
+	ctx := context.Background()
+
 	// open database
-	db, ctx, err := helpers.OpenDatabase()
+	db, err := helpers.OpenDatabase()
 	if err != nil {
 		return err
 	}
