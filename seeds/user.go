@@ -11,13 +11,13 @@ import (
 	"os"
 	"time"
 
-	"groupware-gin/helpers"
-	"groupware-gin/models"
-
 	driver "github.com/arangodb/go-driver"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"syreclabs.com/go/faker"
+
+	"groupware-gin/helpers"
+	"groupware-gin/models"
 )
 
 func InstallUsers() error {
@@ -119,12 +119,11 @@ func InstallUsers() error {
 		}
 		count := faker.Number().NumberInt(1)
 		for i := 0; i < count; i++ {
-			doc := models.User{
-				Name:     faker.Name().Name(),
-				Email:    faker.Internet().Email(),
-				Password: hex.EncodeToString(hasher.Sum(pswd)),
-			}
-			userMeta, err := usersCollection.CreateDocument(ctx, doc)
+			userMeta, err := usersCollection.CreateDocument(ctx, gin.H{
+				"name":     faker.Name().Name(),
+				"email":    faker.Internet().Email(),
+				"password": hex.EncodeToString(hasher.Sum(pswd)),
+			})
 			if err != nil {
 				return err
 			}
@@ -136,20 +135,21 @@ func InstallUsers() error {
 			fileName := uuid.New().String() + ".jpg"
 			filePath := "users/" + userMeta.Key + "/" + fileName
 			DownloadFile("https://thispersondoesnotexist.com/image", "storage/"+filePath)
-			patch := gin.H{
+			userMeta, err = usersCollection.UpdateDocument(ctx, userMeta.Key, gin.H{
 				"Avatar": filePath,
-			}
-			userMeta, err = usersCollection.UpdateDocument(ctx, userMeta.Key, patch)
+			})
 			if err != nil {
 				return err
 			}
 			// register user to company
-			workAtData := models.WorkAt{
-				From:  "users/" + userMeta.Key,
-				To:    "companies/" + companyMeta.Key,
-				Since: faker.Date().Backward(time.Duration(math.Pow10(9) * 3600 * 24 * 365 * 10)),
+			_, err = workAtCollection.CreateDocument(ctx, gin.H{
+				"from":  "users/" + userMeta.Key,
+				"to":    "companies/" + companyMeta.Key,
+				"since": faker.Date().Backward(time.Duration(math.Pow10(9) * 3600 * 24 * 365 * 10)),
+			})
+			if err != nil {
+				return err
 			}
-			workAtCollection.CreateDocument(ctx, workAtData)
 		}
 	}
 

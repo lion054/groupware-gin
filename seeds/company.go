@@ -5,11 +5,11 @@ import (
 	"math"
 	"time"
 
-	"groupware-gin/helpers"
-	"groupware-gin/models"
-
 	driver "github.com/arangodb/go-driver"
+	"github.com/gin-gonic/gin"
 	"syreclabs.com/go/faker"
+
+	"groupware-gin/helpers"
 )
 
 func InstallCompanies() error {
@@ -46,13 +46,12 @@ func InstallCompanies() error {
 	// create a few companies in this collection
 	for i := 0; i < 10; i++ {
 		now := time.Now().UTC()
-		doc := models.Company{
-			Name:       faker.Company().Name(),
-			Since:      faker.Date().Backward(time.Duration(math.Pow10(9) * 3600 * 24 * 365 * 10)).UTC(),
-			CreatedAt:  now,
-			ModifiedAt: now,
-		}
-		_, err := col.CreateDocument(ctx, doc)
+		_, err := col.CreateDocument(ctx, gin.H{
+			"name":        faker.Company().Name(),
+			"since":       faker.Date().Backward(time.Duration(math.Pow10(9) * 3600 * 24 * 365 * 10)).UTC(),
+			"created_at":  now,
+			"modified_at": now,
+		})
 		if err != nil {
 			return err
 		}
