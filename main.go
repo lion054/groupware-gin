@@ -32,5 +32,5 @@ func main() {
 	}
 
 	server.Initialize()
-	server.Router.Run(":" + os.Getenv("PORT"))
+	server.Router.Run("127.0.0.1:" + os.Getenv("PORT")) // add 127.0.0.1 to prevent Windows Defender Firewall from appearing on every launch
 }
