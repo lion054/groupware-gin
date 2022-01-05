@@ -14,7 +14,7 @@ import (
 var server = controllers.Server{}
 
 func main() {
-	fmt.Println("Use /seed flag to install fake dtabase and download fake images")
+	fmt.Println("Use --seed flag to install fake dtabase and download fake images")
 	fmt.Println()
 
 	err := godotenv.Load()
@@ -24,7 +24,7 @@ func main() {
 
 	for _, arg := range os.Args[1:] {
 		// fmt.Printf("Argument %d is %s\n", i, arg)
-		if arg == "/seed" {
+		if arg == "--seed" {
 			seeds.InstallCompanies()
 			// seeds.InstallUsers()
 			os.Exit(1)

@@ -34,7 +34,7 @@
 			"mode": "debug",
 			"program": "${workspaceFolder}",
 			"args": [
-				"/seed"
+				"--seed"
 			]
 		},
 		{
