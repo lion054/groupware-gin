@@ -10,16 +10,16 @@ import (
 
 func OpenDatabase() (driver.Database, error) {
 	// create db connection
-	host := os.Getenv("DB_HOST")
-	port := os.Getenv("DB_PORT")
+	host := os.Getenv("ARANGODB_HOST")
+	port := os.Getenv("ARANGODB_PORT")
 	conn, err := http.NewConnection(http.ConnectionConfig{
 		Endpoints: []string{"http://" + host + ":" + port},
 	})
 	if err != nil {
 		return nil, err
 	}
-	username := os.Getenv("DB_USERNAME")
-	password := os.Getenv("DB_PASSWORD")
+	username := os.Getenv("ARANGODB_USERNAME")
+	password := os.Getenv("ARANGODB_PASSWORD")
 	c, err := driver.NewClient(driver.ClientConfig{
 		Connection:     conn,
 		Authentication: driver.BasicAuthentication(username, password),
@@ -30,7 +30,7 @@ func OpenDatabase() (driver.Database, error) {
 
 	// open database
 	ctx := context.Background()
-	dbName := os.Getenv("DB_DATABASE")
+	dbName := os.Getenv("ARANGODB_DATABASE")
 	db, err := c.Database(ctx, dbName)
 	if err != nil {
 		return nil, err
