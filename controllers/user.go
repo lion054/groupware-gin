@@ -195,11 +195,11 @@ func (s *Server) StoreUser(c *gin.Context) {
 	hasher := md5.New()
 	now := time.Now().UTC()
 	meta, err := users.CreateDocument(ctx, gin.H{
-		"name":        params.Name,
-		"email":       params.Email,
-		"password":    hex.EncodeToString(hasher.Sum([]byte(params.Password))),
-		"created_at":  now,
-		"modified_at": now,
+		"name":       params.Name,
+		"email":      params.Email,
+		"password":   hex.EncodeToString(hasher.Sum([]byte(params.Password))),
+		"created_at": now,
+		"updated_at": now,
 	})
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, err)
@@ -306,7 +306,7 @@ func (s *Server) UpdateUser(c *gin.Context) {
 		return
 	}
 	data := gin.H{
-		"modified_at": time.Now().UTC(),
+		"updated_at": time.Now().UTC(),
 	}
 	if params.Name != "" {
 		data["name"] = params.Name

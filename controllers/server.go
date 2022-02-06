@@ -67,25 +67,26 @@ func (s *Server) SetUpCors() {
 }
 
 func (s *Server) SetUpRoutes() {
-	s.Router.GET("/ping", func(c *gin.Context) {
+	apiGroup := s.Router.Group("/api/v1")
+	apiGroup.GET("/ping", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"message": "ping",
 		})
 	})
 
 	// companies routes
-	s.Router.GET("/companies", s.FindCompanies)
-	s.Router.GET("/companies/:key", s.ShowCompany)
-	s.Router.POST("/companies", s.StoreCompany)
-	s.Router.PATCH("/companies/:key", s.UpdateCompany)
-	s.Router.DELETE("/companies/:key", s.DeleteCompany)
+	apiGroup.GET("/companies", s.FindCompanies)
+	apiGroup.GET("/companies/:key", s.ShowCompany)
+	apiGroup.POST("/companies", s.StoreCompany)
+	apiGroup.PATCH("/companies/:key", s.UpdateCompany)
+	apiGroup.DELETE("/companies/:key", s.DeleteCompany)
 
 	// users routes
-	s.Router.GET("/users", s.FindUsers)
-	s.Router.GET("/users/:key", s.ShowUser)
-	s.Router.POST("/users", s.StoreUser)
-	s.Router.PATCH("/users/:key", s.UpdateUser)
-	s.Router.DELETE("/users/:key", s.DeleteUser)
+	apiGroup.GET("/users", s.FindUsers)
+	apiGroup.GET("/users/:key", s.ShowUser)
+	apiGroup.POST("/users", s.StoreUser)
+	apiGroup.PATCH("/users/:key", s.UpdateUser)
+	apiGroup.DELETE("/users/:key", s.DeleteUser)
 }
 
 func (s *Server) HasCollection(name string) (bool, error) {

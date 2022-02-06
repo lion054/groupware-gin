@@ -10,13 +10,13 @@ import (
 // this struct is used only for json output
 
 type User struct {
-	ID         driver.DocumentID `json:"_id,omitempty"`  // empty on create
-	Key        string            `json:"_key,omitempty"` // empty on create
-	Rev        string            `json:"_rev,omitempty"` // empty on create
-	Name       string            `json:"name"`
-	Email      string            `json:"email"`
-	Avatar     string            `json:"avatar"`
-	CreatedAt  time.Time         `json:"created_at"`
-	ModifiedAt time.Time         `json:"modified_at"`
-	DeletedAt  *time.Time        `json:"deleted_at,omitempty"`
+	ID        driver.DocumentID `json:"_id,omitempty"`  // empty on create
+	Key       string            `json:"_key,omitempty"` // empty on create
+	Rev       string            `json:"_rev,omitempty"` // empty on create
+	Name      string            `json:"name"`
+	Email     string            `json:"email"`
+	Avatar    string            `json:"avatar"`
+	CreatedAt time.Time         `json:"created_at"`
+	UpdatedAt time.Time         `json:"updated_at"`
+	DeletedAt *time.Time        `json:"deleted_at,omitempty"`
 }

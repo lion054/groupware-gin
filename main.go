@@ -14,7 +14,7 @@ import (
 var server = controllers.Server{}
 
 func main() {
-	fmt.Println("Use --seed flag to install fake dtabase and download fake images")
+	fmt.Println("Use --seed flag to install fake database and download fake images")
 	fmt.Println()
 
 	err := godotenv.Load()

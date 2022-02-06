@@ -134,10 +134,10 @@ func (s *Server) ShowCompany(c *gin.Context) {
  */
 
 type StoreCompanyParams struct {
-	Name       string    `json:"name" valid:"required,notnull"`
-	Since      string    `json:"since" valid:"required,rfc3339"`
-	CreatedAt  time.Time `json:"created_at"`
-	ModifiedAt time.Time `json:"modified_at"`
+	Name      string    `json:"name" valid:"required,notnull"`
+	Since     string    `json:"since" valid:"required,rfc3339"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
 }
 
 func (s *Server) StoreCompany(c *gin.Context) {
@@ -155,7 +155,7 @@ func (s *Server) StoreCompany(c *gin.Context) {
 	params.Name = govalidator.Trim(params.Name, "")
 	now := time.Now().UTC()
 	params.CreatedAt = now
-	params.ModifiedAt = now
+	params.UpdatedAt = now
 	res, err := govalidator.ValidateStruct(params)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, err)
@@ -207,9 +207,9 @@ func (s *Server) validateCompanyParams(c *gin.Context) (string, error) {
 }
 
 type UpdateCompanyParams struct {
-	Name       string    `json:"name,omitempty" validate:"optional,notnull"`
-	Since      string    `json:"since,omitempty" validate:"optional,rfc3339"`
-	ModifiedAt time.Time `json:"modified_at"`
+	Name      string    `json:"name,omitempty" validate:"optional,notnull"`
+	Since     string    `json:"since,omitempty" validate:"optional,rfc3339"`
+	UpdatedAt time.Time `json:"updated_at"`
 }
 
 func (s *Server) UpdateCompany(c *gin.Context) {
@@ -234,7 +234,7 @@ func (s *Server) UpdateCompany(c *gin.Context) {
 	if params.Name != "" {
 		params.Name = govalidator.Trim(params.Name, "") // empty string means default token
 	}
-	params.ModifiedAt = time.Now().UTC()
+	params.UpdatedAt = time.Now().UTC()
 	result, err := govalidator.ValidateStruct(params)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, err)

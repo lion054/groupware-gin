@@ -47,10 +47,10 @@ func InstallCompanies() error {
 	for i := 0; i < 10; i++ {
 		now := time.Now().UTC()
 		_, err := col.CreateDocument(ctx, gin.H{
-			"name":        faker.Company().Name(),
-			"since":       faker.Date().Backward(time.Duration(math.Pow10(9) * 3600 * 24 * 365 * 10)).UTC(),
-			"created_at":  now,
-			"modified_at": now,
+			"name":       faker.Company().Name(),
+			"since":      faker.Date().Backward(time.Duration(math.Pow10(9) * 3600 * 24 * 365 * 10)).UTC(),
+			"created_at": now,
+			"updated_at": now,
 		})
 		if err != nil {
 			return err
